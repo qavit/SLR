@@ -2,7 +2,6 @@
 This script builds corpus and trains language models for sign language recognition
 This project is dedicated to Taiwanese Sign Languages (TSL).
 
-
 Usage:
 python mp.py <input_file> (future) 
 
@@ -26,15 +25,18 @@ from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.callbacks import TensorBoard
 
 ##################################################################
+# labels, e.g., ['paper', 'scissors', 'rock'] or [f'number{i}' for i in range(10)]
+new_corpus = np.array([f'number{i}' for i in range(10)]) 
+print(new_corpus)
 
-MODEL_NAME = 'tsl002'
+MODEL_NAME = 'tsl001'
 MODEL_DIR = os.path.join('Models')
 DATA_DIR = os.path.join('MP_Data')  # Directory for keypoint data (.npy) acquired by MediaPipe
 LOG_DIR = os.path.join('Logs')      # Directory for the log files to be parsed by TensorBoard
-N_VIDEOS = 10       # number of videos for each label
+N_VIDEOS = 30       # number of videos for each label
 N_FRAMES = 30      #  number of frames in each video
 
-N_KEYPTS = 63       # number of keypoints; 
+N_KEYPTS = 1662       # number of keypoints; 
 #          63, if single hand
 #        1662, if face + pose + both hands
 
@@ -42,6 +44,7 @@ LOSS = 'categorical_crossentropy'
 OPTIM = 'Adam'
 
 ##################################################################
+
 
 def mp_detect(image, mp_model):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # COLOR CONVERSION BGR 2 RGB
@@ -51,12 +54,14 @@ def mp_detect(image, mp_model):
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR) # COLOR COVERSION RGB 2 BGR
     return image, results
 
+
 def draw_landmarks(image, results):
     # Note that FACE_CONNECTIONS is renamed to FACEMESH_CONTOURS.
     mp_drawing.draw_landmarks(image, results.face_landmarks, mp_holistic.FACEMESH_CONTOURS) # Draw face connections
     mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS) # Draw pose connections
     mp_drawing.draw_landmarks(image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS) # Draw left hand connections
     mp_drawing.draw_landmarks(image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS) # Draw right hand connections
+
 
 def draw_styled_landmarks(image, results):
     # Draw face connections
@@ -80,12 +85,14 @@ def draw_styled_landmarks(image, results):
     #                          mp_drawing.DrawingSpec(color=(245,66,230), thickness=2, circle_radius=2)
     #                          ) 
 
+
 def extract_keypoints(results):
     # pose = np.array([[res.x, res.y, res.z, res.visibility] for res in results.pose_landmarks.landmark]).flatten() if results.pose_landmarks else np.zeros(33*4)
     # face = np.array([[res.x, res.y, res.z] for res in results.face_landmarks.landmark]).flatten() if results.face_landmarks else np.zeros(468*3)
     lh = np.array([[res.x, res.y, res.z] for res in results.left_hand_landmarks.landmark]).flatten() if results.left_hand_landmarks else np.zeros(21*3)
     # rh = np.array([[res.x, res.y, res.z] for res in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
     return lh #np.concatenate([pose, face, lh, rh])
+
 
 def test_cam(use_mp=False):
     """
@@ -104,7 +111,7 @@ def test_cam(use_mp=False):
         # Show to screen
         cv2.imshow('OpenCV Feed', frame)
 
-        if use_mp:   
+        if use_mp:
             # Use MediaPipe to detect holistic model 
             image, results = mp_detect(frame, holistic)
             
@@ -120,7 +127,8 @@ def test_cam(use_mp=False):
 
     return None
 
-def create_folder(labels):
+
+
     """
     Creating folder for collecting video frames.
     
@@ -139,6 +147,7 @@ def create_folder(labels):
                 pass 
 
     print(f'{len(labels)} folders created.')
+
 
 def collect_videos(labels, idx0=0):
     """
@@ -201,6 +210,7 @@ def collect_videos(labels, idx0=0):
         cap.release()
         cv2.destroyAllWindows()
 
+
 def preprocess(labels):
     """
     Read the keypoint data from numpy files.
@@ -259,17 +269,15 @@ mp_holistic = mp.solutions.holistic                 # Holistic model
 mp_drawing = mp.solutions.drawing_utils             # Drawing utilities
 
 ## Build your corpus, e.g. [number0, number1, ..., number9]
-new_corpus = np.array(['paper', 'scissors', 'rock']) # labels, [f'number{i}' for i in range(10)]
-
-create_folder(new_corpus)
-collect_videos(new_corpus)
+# create_folder(new_corpus)
+# collect_videos(new_corpus)
 
 X_train, X_test, y_train, y_test = preprocess(new_corpus)
 
-# print(f'{X_train.shape = }') 
-# print(f'{X_test.shape = }') 
-# print(f'{y_train.shape = }') 
-# print(f'{y_test.shape = }')  
+print(f'{X_train.shape = }') 
+print(f'{X_test.shape = }') 
+print(f'{y_train.shape = }') 
+print(f'{y_test.shape = }')  
 
 #################################################################
 # MAIN - MODEL TRAINING
@@ -296,7 +304,7 @@ model.fit(X_train, y_train, epochs=1000, callbacks=[tb_callback])
 model.summary()
 
 # Save weights as HDF5 format (or Keras format)
-model_path = os.path.join(MODEL_DIR, f'{MODEL_NAME}.h5')
+model_path = os.path.join(MODEL_DIR, f'{MODEL_NAME}.keras')
 model.save(model_path)
 # del model
 
@@ -315,82 +323,3 @@ y_predicted = np.argmax(y_predicted, axis=1).tolist()
 multilabel_confusion_matrix(y_actual, y_predicted)
 
 accuracy_score(y_actual, y_predicted)
-
-
-##################################################################
-# MAIN - REALTIME RECOGNITION
-
-
-colors = [(245,117,16), (117,245,16), (16,117,245)]
-
-def prob_viz(res, labels, input_frame, colors=colors):
-    output_frame = input_frame.copy()
-    for num, prob in enumerate(res):
-        cv2.rectangle(output_frame, (0,60+num*40), (int(prob*100), 90+num*40), color=colors[num], thickness=-1)
-        cv2.putText(output_frame, labels[num], (0, 85+num*40), cv2.FONT_HERSHEY_SIMPLEX, 1, colors[num], 2, cv2.LINE_AA)
-        
-    return output_frame
-
-# New detection variables
-sequence = []
-sentence = []
-predictions = []
-threshold = 0.5
-
-cap = cv2.VideoCapture(0)
-
-with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-    while cap.isOpened():
-
-        _, frame = cap.read()
-        image, mp_results = mp_detect(frame, holistic)
-        
-        draw_styled_landmarks(image, mp_results)
-        
-        # Prediction logic
-        keypoints = extract_keypoints(mp_results)
-        sequence.append(keypoints)
-        sequence = sequence[-30:]
-        
-        if len(sequence) == 30:
-            res = model.predict(np.expand_dims(sequence, axis=0))[0]
-            print(new_corpus[np.argmax(res)])
-            predictions.append(np.argmax(res))
-            
-            
-        #3. Viz logic
-            if np.unique(predictions[-10:])[0]==np.argmax(res): 
-                if res[np.argmax(res)] > threshold: 
-                    
-                    if len(sentence) > 0: 
-                        if new_corpus[np.argmax(res)] != sentence[-1]:
-                            sentence.append(new_corpus[np.argmax(res)])
-                    else:
-                        sentence.append(new_corpus[np.argmax(res)])
-
-            if len(sentence) > 5: 
-                sentence = sentence[-5:]
-
-            # Viz probabilities
-            image = prob_viz(res, new_corpus, image)
-            
-        cv2.rectangle(image, (0,0), (720, 40), (0, 0, 0), -1)
-        cv2.putText(image, ' '.join(sentence), (3,30), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        
-        # Show to screen
-        cv2.imshow('OpenCV Feed', image)
-
-        # Break gracefully
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-
-##################################################################
-
-
-
-
