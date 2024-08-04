@@ -1,4 +1,4 @@
-# slr-nick
+# Qavit's SLR 
 手語辨識（Sign Language Recognition, SLR）專案。此專案將使用 Google AI 的 [MediaPipe](https://ai.google.dev/edge/mediapipe/solutions/guide) 解決方案分析手語影片（本文件附有[簡介](#mediapipe-簡介)），並使用 [Tensorflow](https://www.tensorflow.org/?hl=zh-tw) [Keras](https://www.tensorflow.org/guide/keras?hl=zh-tw) 訓練 RNN（循環神經網路）模型，最終目標是在 [learnai2024-team3-project](https://github.com/learnai2024-team3-project) 組織的協作下創造一個能辨識台灣手語（Taiwanese Sign Language, TSL）的應用程式。
 
 本專案獲得 [nicknochnack/ActionDetectionforSignLanguage](https://github.com/nicknochnack/ActionDetectionforSignLanguage) 等 GitHub 儲存庫的啟發。
@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ```
 
 ## `mp.py`
-- **警告：此腳本即將棄用！因為保留重要的函式，例如 LSTM 的建構、訓練和評估，所以暫時保留。一部分跟 MediaPipe 的有關的功能暫時轉移到 `fetch_kp_yt.py`**。
+- **警告：此腳本即將棄用！但因為保留重要的函式，例如 LSTM 的建構、訓練和評估，所以暫時保留。此外，一部分跟 MediaPipe 的有關的功能暫時轉移到 `fetch_kp_yt.py`**。
 - 此腳本（2024-08-02 更新）主要功能是：
    1. 為自定義的語彙標籤集合（例如變數 `new_corpus`）。
    2. 使用函式 `collect_videos` 透過內建的 webcam 錄製各個語彙標籤的手語影片。
