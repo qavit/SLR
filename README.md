@@ -37,7 +37,7 @@ pip install -r requirements.txt
 
 此腳本（2024-08-04 更新）可以在 Shell 中執行，從 YouTube 下載手語影片，並使用 MediaPipe 進行人體姿勢偵測。
 
-此腳本之後將作為的模組
+此腳本之後將作為的模組之一。
 
 ### 功能概述
 
@@ -80,35 +80,35 @@ pip install -r requirements.txt
 
 1. 下載影片：
    ```sh
-   python video_downloader.py -l
+   python fetch_kp_yt.py -l
    ```
 
 2. 顯示已下載的影片清單：
    ```sh
-   python video_downloader.py -s
+   python fetch_kp_yt.py -s
    ```
 
 3. 執行姿勢偵測：
    ```sh
-   python video_downloader.py -d
+   python fetch_kp_yt.py -d
    ```
 
 4. 執行姿勢偵測並提取關鍵點：
    ```sh
-   python video_downloader.py -e
+   python fetch_kp_yt.py -e
    ```
 
 ### 注意事項
 
-- 請確保您有足夠的網路頻寬和儲存空間來下載和處理影片。
+- 請確保你有足夠的網路頻寬和儲存空間來下載和處理影片。
 - 姿勢偵測可能需要較高的計算資源，請在適當的硬體上運行。
 - 使用 YouTube 影片時，請遵守相關的使用條款和版權規定。
 
 ### 進階使用
 
-- 您可以修改 `settings.py` 檔案來自定義各種路徑設定。
+- 你可以修改 `settings.py` 檔案來自定義各種路徑設定。
 - 腳本中的 `draw_styled_landmarks` 函數可以調整以改變繪製的風格。
-- `extract_keypoints` 函數提供了關鍵點資料的提取，可以根據需求進行進一步的資料分析。
+- `extract_keypoints` 函數提供了關鍵點資料的提取，並將 NumPy 檔案儲存在指令路徑。你可以根據需求進行進一步的資料分析。
 
 ## MediaPipe 簡介
 ### Landmark
