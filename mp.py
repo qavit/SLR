@@ -1,12 +1,5 @@
 """
-This script builds corpus and trains language models for sign language recognition
-This project is dedicated to Taiwanese Sign Languages (TSL).
-
-Usage:
-python mp.py <input_file> (future) 
-
-Arguments:
-- input_file (str): Path to the input data file. (future)
+This script will be deprecated very soon. Use `fetch_kp_yt.py`
 """
 
 import os
@@ -58,7 +51,7 @@ def mp_detect(image, mp_model):
 
 
 def draw_landmarks(image, mp_results):
-    # Note that FACE_CONNECTIONS is renamed to FACEMESH_CONTOURS.
+    # 
     draw = mp_drawing.draw_landmarks
     draw(image, mp_results.face_landmarks, mp_holistic.FACEMESH_CONTOURS)
     draw(image, mp_results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
@@ -103,11 +96,10 @@ def extract_keypoints(results):
     for i, lm in enumerate(landmarks):
         if lm:
             if i == 0:
-                kp = [[pt.x, pt.y, pt.z, pt.visibility] for pt in lm.landmark]
-                kp = np.array(kp).flatten()
+                kp = [[pt.x, pt.y, pt.z, pt.visibility] for pt in lm.landmark]  
             else:
                 kp = [[pt.x, pt.y, pt.z] for pt in lm.landmark]
-                kp = np.array(kp).flatten()
+            kp = np.array(kp).flatten()
         else:
             kp = zero_array[i]
         keypoints.append[kp]
@@ -240,17 +232,15 @@ def fetch_video_urls(path):
     Returns:
     - url_dict (dict): labels mapping to URLs
     """
-
     df = pd.read_csv(path)
-    df = pd.read_csv('手語影片URLs.csv')
     labels = df['動作名稱'].to_list()
     urls = df['網址'].to_list()
     url_dict = dict(zip(labels, urls))
+
     return url_dict
 
 
-
-def preprocess(labels):
+def preprocess_keypoints(labels):
     """
     Read the keypoint data from numpy files.
     Convert the keypoint data into array (`X`).
@@ -331,7 +321,7 @@ collect_videos_from_url(CSV_PATH)
 # create_folder(new_corpus)
 # collect_videos(new_corpus)
 
-# X_train, X_test, y_train, y_test = preprocess(new_corpus)
+# X_train, X_test, y_train, y_test = preprocess_keypoints(new_corpus)
 
 # print(f'{X_train.shape = }') 
 # print(f'{X_test.shape = }') 
