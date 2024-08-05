@@ -1,5 +1,5 @@
 import gradio as gr
-from fetch_kp_yt import create_folder, read_csv_and_download, load_and_detect
+from fetch import create_folder, read_csv_and_download, load_and_detect
 from settings import *
 
 create_folder(VIDEO_DIR, KP_DIR)

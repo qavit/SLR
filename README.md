@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ```
 
 ## `mp.py`
-- **警告：此腳本即將棄用！但因為保留重要的函式，例如 LSTM 的建構、訓練和評估，所以暫時保留。此外，一部分跟 MediaPipe 的有關的功能暫時轉移到 `fetch_kp_yt.py`**。
+- **警告：此腳本即將棄用！但因為保留重要的函式，例如 LSTM 的建構、訓練和評估，所以暫時保留。此外，一部分跟 MediaPipe 的有關的功能暫時轉移到 `fetch.py`**。
 - 此腳本（2024-08-02 更新）主要功能是：
    1. 為自定義的語彙標籤集合（例如變數 `new_corpus`）。
    2. 使用函式 `collect_videos` 透過內建的 webcam 錄製各個語彙標籤的手語影片。
@@ -30,8 +30,11 @@ pip install -r requirements.txt
 - 原本各大標題下的程式碼區塊大多被我改寫成函式，為本專案將來的**模組化**（modularization）作準備。
 - 根據初步測試，此腳本的模型有過擬合（overfitting）的問題，有必要對模型的設計和超參數（hyperparameters）的調整做進一步的考察。
 
+## `settings.py`
+這裡集中管理全專案共用的設定。變數名稱一律大寫。
 
-## `fetch_kp_yt.py`
+
+## `fetch.py`
 
 此腳本（2024-08-04 更新）可以在 Shell 中執行，從 YouTube 下載手語影片，並使用 MediaPipe 進行人體姿勢偵測。
 
@@ -78,22 +81,22 @@ pip install -r requirements.txt
 
 1. 下載影片：
    ```sh
-   python fetch_kp_yt.py -l
+   python fetch.py -l
    ```
 
 2. 顯示已下載的影片清單：
    ```sh
-   python fetch_kp_yt.py -s
+   python fetch.py -s
    ```
 
 3. 執行姿勢偵測、提取關鍵點：
    ```sh
-   python fetch_kp_yt.py -d
+   python fetch.py -d
    ```
 
 4. 執行姿勢偵測、提取關鍵點、即時播放：
    ```sh
-   python fetch_kp_yt.py -p
+   python fetch.py -p
    ```
 
 ### 注意事項
@@ -107,6 +110,29 @@ pip install -r requirements.txt
 - 你可以修改 `settings.py` 檔案來自定義各種路徑設定。
 - 腳本中的 `draw_styled_landmarks` 函數可以調整以改變繪製的風格。
 - `extract_keypoints` 函數提供了關鍵點資料的提取，並將 NumPy 檔案儲存在指令路徑。你可以根據需求進行進一步的資料分析。
+
+## `demo.py`
+這個腳本使用 [Gradio](https://www.gradio.app/) 實現 `fetch.py` 的使用者介面。腳本執行之後，會在 `http://127.0.0.1:7860` 建立簡易 GUI，供使用者上傳 YouTube URL 的 CSV 檔、下載 YouTube 和偵測 landmark、提取 keypoints。
+
+## `raven.py`
+這個腳本使用了 Hugging Face 的模型 [RavenOnur/Sign-Language](https://huggingface.co/RavenOnur/Sign-Language)（代號 `raven`）。它隨機抽取 25 個拉丁字母（A-Y，不含 Z）手勢圖片中的 10 張，然後交給模型的 pipeline 辨識，同時印出圖檔的 URL 和辨識結果。
+
+輸出範例
+```txt
+alphabets = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+random_samples = ['X', 'Y', 'D', 'G', 'P', 'T', 'E', 'L', 'N', 'V']
+X.jpg ----> X
+Y.jpg ----> Y
+D.jpg ----> D
+G.jpg ----> G
+P.jpg ----> P
+T.jpg ----> T
+E.jpg ----> E
+L.jpg ----> L
+N.jpg ----> N
+V.jpg ----> V
+```
+
 
 ## MediaPipe 簡介
 ### Landmark

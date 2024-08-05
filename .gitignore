@@ -1,3 +1,4 @@
 # Ignore videos directory
 Videos/
+__pychache__/
 

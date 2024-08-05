@@ -1,3 +1,5 @@
+from settings import FONT_PATH, URL_PATH, VIDEO_DIR, KP_DIR, KP_ZEROS
+
 import numpy as np
 import pandas as pd
 import requests
@@ -7,8 +9,8 @@ import os
 import re
 from pytubefix import YouTube
 from PIL import ImageFont, ImageDraw, Image
-from settings import FONT_PATH, URL_PATH, VIDEO_DIR, KP_DIR, KP_ZEROS
 
+##################################################################
 
 def read_csv(url_path):
     """Read a CSV file and extract labels and URLs.
@@ -260,6 +262,7 @@ def detect_and_extract(label, video_path, keypoint_dir, display=False):
             cap.release()
             cv2.destroyAllWindows()
         return True
+    
     except Exception as e:
         print(f"An error occurred: {e}")
         return False
@@ -325,14 +328,13 @@ def read_csv_and_download(url_path, video_dir):
     df = pd.DataFrame(video_paths, columns=['label', 'video_path'])
     return df
 
-def load_and_detect(video_dir, keypoint_dir, display):
+def load_and_detect(video_dir, keypoint_dir, display=False):
     """Load the videos from `video_dir`, detect the landmarks, and extract keypoints.
 
     Args:
         video_path (str): The path where the video will be saved.
         keypoint_dir (str): The directory to save the numpy file for keypoint data.
-        display (bool, optional): Flag indicating whether to play the video and
-                                  draw the landmark in realtime.
+        display (bool, optional): Flag indicating whether to play the video and draw the landmark in realtime. Defaults to False.
 
     Returns:
         None
@@ -369,6 +371,7 @@ def create_folder(*dirs):
         if not os.path.exists(folder):
             os.makedirs(folder)
 
+##################################################################
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Download and play videos from URLs in a CSV file.")

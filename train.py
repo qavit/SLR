@@ -1,18 +1,11 @@
-"""
-This script will be deprecated very soon. Use `fetch_kp_yt.py`
-"""
 from settings import *
-from fetch_kp import *
+from fetch import *
 
 import os
-import cv2
-import mediapipe as mp
 import numpy as np
 import pandas as pd
 from scipy import stats
 from matplotlib import pyplot as plt
-
-
 
 from sklearn.metrics import multilabel_confusion_matrix, accuracy_score
 from sklearn.model_selection import train_test_split
@@ -24,50 +17,15 @@ from tensorflow.keras.callbacks import TensorBoard
 
 ##################################################################
 
-def test_cam(use_mp_model=False):
-    """
-    Test the webcam. Press q to close the window.
-
-    Parameters:
-    - use_mp_model (bool): Use MediaPipe to detect pose and draw the landmarks. Default: False.
-    """
-
-    cap = cv2.VideoCapture(0)
-
-    while cap.isOpened():
-        _, frame = cap.read() # Read feed
-        cv2.imshow('OpenCV Feed', frame) # Show to screen
-
-        if use_mp_model:
-            # Use MediaPipe to detect holistic model
-            image, mp_results = mp_detect(frame, use_mp_model)
-          
-            # Use MediaPipe to draw landmarks
-            draw_styled_landmarks(image, mp_results)
-
-        # Break gracefully
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-    return None
-
-
-
 def collect_videos(labels, idx0=0):
-    """
-    Open built-in webcam, record videos for idividual signs, extract keypoint data, and save as numpy file.
+    """Open built-in webcam, record videos for idividual signs, extract keypoint data, and save as numpy file.
 
     Parameters:
-    - labels (array_like): 1d array of labels. Each label is a string.
-        For example: `['car', 'shoe', 'lake']`.
-    - idx0 (int): the index value of the first video in the collection. Default: 0.
+        labels (array_like): 1d array of labels. Each label is a string. For example: `['car', 'shoe', 'lake']`.
+        
+        idx0 (int): the index value of the first video in the collection. Default: 0.
     """
 
-    # !? assert *labels is a 1d array*
-    # !? assert *each item in labels is a string*
     assert int(idx0) == idx0
 
     cap = cv2.VideoCapture(0)
@@ -138,9 +96,6 @@ def preprocess_keypoints(labels):
     - train_and_test (tuple): training data and testing data. Each entry is an array.
     """
 
-    # !? assert *labels is a 1d array*
-    # !? assert *each item in labels is a string*
-
     label_map = {label:num for num, label in enumerate(labels)}
     video_list, label_num_list = [], []
 
@@ -189,8 +144,6 @@ def evaluate_model(X_test, y_test):
 # labels, e.g., ['paper', 'scissors', 'rock'] or [f'number{i}' for i in range(10)]
 # new_corpus = np.array([f'number{i}' for i in range(10)])
 # print(new_corpus)
-
-collect_videos_from_url(CSV_PATH)
 
 ## Build your corpus, e.g. [number0, number1, ..., number9]
 # create_folder(new_corpus)
