@@ -1,6 +1,8 @@
 """
 This script will be deprecated very soon. Use `fetch_kp_yt.py`
 """
+from settings import *
+from fetch_kp import *
 
 import os
 import cv2
@@ -10,6 +12,8 @@ import pandas as pd
 from scipy import stats
 from matplotlib import pyplot as plt
 
+
+
 from sklearn.metrics import multilabel_confusion_matrix, accuracy_score
 from sklearn.model_selection import train_test_split
 
@@ -18,94 +22,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.callbacks import TensorBoard
 
-# key point numbers [pose, face, lhand, rhand]
-kp_num = [33*4, 468*3, 21*3, 21*3]
-
 ##################################################################
-
-CSV_PATH = '手語影片URLs.csv'
-MODEL_NAME = 'tsl001'
-MODEL_DIR = os.path.join('Models')
-DATA_DIR = os.path.join('MP_Data')  # Directory for keypoint data (.npy) acquired by MediaPipe
-LOG_DIR = os.path.join('Logs')      # Directory for the log files to be parsed by TensorBoard
-N_VIDEOS = 30       # number of videos for each label
-N_FRAMES = 30      # number of frames in each video
-
-N_KEYPTS = 1662       # number of keypoints; 
-#          63, if single hand
-#        1662, if face + pose + both hands
-
-LOSS = 'categorical_crossentropy'
-OPTIM = 'Adam'
-
-##################################################################
-
-
-def mp_detect(image, mp_model):
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # COLOR CONVERSION BGR 2 RGB
-    image.flags.writeable = False                   # Image is no longer writeable
-    mp_results = mp_model.process(image)               # Make prediction
-    image.flags.writeable = True                    # Image is now writeable 
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # COLOR COVERSION RGB 2 BGR
-    return image, mp_results
-
-
-def draw_landmarks(image, mp_results):
-    # 
-    draw = mp_drawing.draw_landmarks
-    draw(image, mp_results.face_landmarks, mp_holistic.FACEMESH_CONTOURS)
-    draw(image, mp_results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
-    draw(image, mp_results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-    draw(image, mp_results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-
-
-def draw_styled_landmarks(image, mp_results):
-    draw = mp_drawing.draw_landmarks
-    spec = mp_drawing.DrawingSpec
-
-    draw(image, mp_results.face_landmarks, mp_holistic.FACEMESH_CONTOURS,
-        spec(color=(80, 110, 10), thickness=1, circle_radius=1),  # landmark_drawing_spec
-        spec(color=(80, 256, 121), thickness=1, circle_radius=1)  # connection_drawing_spec
-        )
-
-    draw(image, mp_results.pose_landmarks, mp_holistic.POSE_CONNECTIONS,
-        spec(color=(80, 22, 10), thickness=2, circle_radius=4),
-        spec(color=(80, 44, 121), thickness=2, circle_radius=2)
-        )
-
-    draw(image, mp_results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS,
-        spec(color=(121, 22, 76), thickness=2, circle_radius=4),
-        spec(color=(121, 44, 250), thickness=2, circle_radius=2)
-        )
-
-    draw(image, mp_results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS,
-        spec(color=(245, 117, 66), thickness=2, circle_radius=4),
-        spec(color=(245, 66, 230), thickness=2, circle_radius=2)
-        )
-
-
-def extract_keypoints(results):
-    landmarks = [results.pose_landmarks,
-                 results.face_landmarks,
-                 results.left_hand_landmarks, 
-                 results.right_hand_landmarks]
-
-    zero_array = [np.zeros(z) for z in kp_num]
-
-    keypoints = []
-    for i, lm in enumerate(landmarks):
-        if lm:
-            if i == 0:
-                kp = [[pt.x, pt.y, pt.z, pt.visibility] for pt in lm.landmark]  
-            else:
-                kp = [[pt.x, pt.y, pt.z] for pt in lm.landmark]
-            kp = np.array(kp).flatten()
-        else:
-            kp = zero_array[i]
-        keypoints.append[kp]
-            
-    return np.concatenate(keypoints)
-
 
 def test_cam(use_mp_model=False):
     """
@@ -137,26 +54,6 @@ def test_cam(use_mp_model=False):
 
     return None
 
-
-def create_folder(labels):
-    """
-    Creating folder for collecting video frames.
-   
-    Parameters
-    - labels (array_like): 1d array of labels. Each label is a string. For example: `['car', 'shoe', 'lake']`.
-    """
-
-    # !? assert *labels is 1d array*
-    # !? assert *each item in labels is a string*
-
-    for label in labels:
-        for idx_video in range(N_VIDEOS):
-            try:
-                os.makedirs(os.path.join(DATA_DIR, label, str(idx_video)))
-            except:
-                pass
-
-    print(f'{len(labels)} folders created.')
 
 
 def collect_videos(labels, idx0=0):
@@ -221,24 +118,6 @@ def collect_videos(labels, idx0=0):
                   
         cap.release()
         cv2.destroyAllWindows()
-
-def fetch_video_urls(path):
-    """
-    Fetch video URLs from CSV file.
-    
-    Parameters:
-    - path (str): path of CSV file.
-
-    Returns:
-    - url_dict (dict): labels mapping to URLs
-    """
-    df = pd.read_csv(path)
-    labels = df['動作名稱'].to_list()
-    urls = df['網址'].to_list()
-    url_dict = dict(zip(labels, urls))
-
-    return url_dict
-
 
 def preprocess_keypoints(labels):
     """
@@ -306,10 +185,6 @@ def evaluate_model(X_test, y_test):
 
 ##################################################################
 # MAIN
-
-## Define MediaPipe Holistic pipeline
-mp_holistic = mp.solutions.holistic                 # Holistic model
-mp_drawing = mp.solutions.drawing_utils             # Drawing utilities
 
 # labels, e.g., ['paper', 'scissors', 'rock'] or [f'number{i}' for i in range(10)]
 # new_corpus = np.array([f'number{i}' for i in range(10)])

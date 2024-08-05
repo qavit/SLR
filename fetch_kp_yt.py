@@ -38,6 +38,7 @@ def download_YouTube(url, video_path):
     Returns:
         bool: True if the download was successful, False otherwise.
     """
+    create_folder(VIDEO_DIR)
     try:
         yt = YouTube(url)
         stream = yt.streams.get_highest_resolution()
@@ -303,7 +304,7 @@ def read_csv_and_download(url_path, video_dir):
 
     Args:
         url_path (str): The path to the CSV file containing labels and URLs
-        video_path (str): The path where the video will be saved.
+        video_dir (str): The directory where the video will be saved.
 
     Returns:
         pandas.DataFrame: Columns 'label' and 'video_path' for downloaded files.
@@ -336,6 +337,7 @@ def load_and_detect(video_dir, keypoint_dir, display):
     Returns:
         None
     """
+    
     video_df = get_video_list(video_dir)
     print('Importing:', video_df['label'].to_list)
     keypoint_paths = []
@@ -353,6 +355,20 @@ def load_and_detect(video_dir, keypoint_dir, display):
 
     df = pd.DataFrame(keypoint_paths, columns=['label', 'keypoint_path'])
     return df
+
+def create_folder(*dirs):
+    """Create directories if they do not exist.
+
+    Args:
+        *dirs (str): One or more directory paths to create.
+        
+    Returns:
+        None
+    """
+    for folder in dirs:
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Download and play videos from URLs in a CSV file.")
@@ -381,9 +397,7 @@ if __name__ == '__main__':
     print(f"Keypoints directory: {KP_DIR}")
 
     # Create the download folders if they don't exist
-    for folder in [args.video_dir, args.keypoint_dir]:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+    create_folder(args.video_dir, args.keypoint_dir)
 
     if args.download:
         read_csv_and_download(args.url_path, args.video_dir)

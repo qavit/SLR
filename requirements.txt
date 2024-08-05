@@ -1,12 +1,12 @@
 gradio==4.40.0
 keras==3.4.1
-mediapipe==0.10.9
+mediapipe
 numpy==1.26.0
 opencv-python==4.10.0.84
 pandas==2.2.2
 pytubefix==6.8.1
 scikit-learn==1.5.1
 scipy==1.14.0
-tensorboard==2.16.2
-tensorflow==2.16.2
-torch==2.2.2
+tf-keras==2.17.0
+transformers==4.43.3
+torch==2.4.0
