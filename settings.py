@@ -1,7 +1,7 @@
 import os
 
 FONT_PATH = os.path.join('Utils', 'NotoSansCJKtc-Regular.otf')
-URL_PATH =  os.path.join('URLs', 'urls01.csv')
+URL_PATH =  os.path.join('URLs', 'urls02.csv')
 
 VIDEO_DIR = 'Videos'
 KP_DIR = 'Keypoints'

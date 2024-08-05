@@ -9,28 +9,28 @@ from pytubefix import YouTube
 from PIL import ImageFont, ImageDraw, Image
 from settings import FONT_PATH, URL_PATH, VIDEO_DIR, KP_DIR, KP_ZEROS
 
-def read_csv(file_path):
+def read_csv(url_path):
     """Read a CSV file and extract labels and URLs.
 
     Args:
-        file_path (str): The path to the CSV file.
+        url_path (str): The path to the CSV file containing labels and URLs.
 
     Returns:
         tuple: Two lists, one containing labels and the other containing URLs.
     """
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(url_path)
     labels = df['Label'].tolist()
     urls = df['URL'].tolist()
     return labels, urls
 
-def download_YouTube(url, file_path):
+def download_YouTube(url, video_path):
     """Download a video from the given YouTube URL and save it to a file.
     
     This downloader is based on `pytubefix`. See more at https://pytubefix.readthedocs.io/en/latest/.
 
     Args:
         url (str): The URL of the video to download.
-        file_path (str): The path where the video will be saved.
+        video_path (str): The path where the video will be saved.
 
     Returns:
         bool: True if the download was successful, False otherwise.
@@ -38,7 +38,8 @@ def download_YouTube(url, file_path):
     try:
         yt = YouTube(url)
         stream = yt.streams.get_highest_resolution()
-        stream.download(output_path=file_path.rsplit('/', 1)[0], filename=file_path.rsplit('/', 1)[1])
+        stream.download(output_path = video_path.rsplit('/', 1)[0], 
+                        filename = video_path.rsplit('/', 1)[1])
         return True
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -184,21 +185,25 @@ def put_text_CJK(img, txt, font_path=FONT_PATH,
     img_pil = Image.fromarray(img)                   # Convert the NumPy array to a PIL image
     draw = ImageDraw.Draw(img_pil)                   # Prepare to draw on the image
     draw.text(position, txt, fill=color, font=font)  # Draw the text on the image
-    return np.array(img_pil)                         # Convert the PIL image back to a NumPy array
+    return np.array(img_pil)                         # Convert the PIL image back to a NumPy arra
 
-def play_and_detect(label, video_path, keypoint_dir, extract=False):
-    """Play a video, detect holistic landmarks using MediaPipe, and optionally extract keypoints.
+def detect_and_extract(label, video_path, keypoint_dir, display=False):
+    """Detect holistic landmarks using MediaPipe and extract keypoints, and 
+    optionally display the landmarks in realtime.
 
-    This function plays a video from the given file path, detects holistic landmarks in each frame 
-    using MediaPipe, and draws the landmarks on the frame. The video is displayed with the given label 
-    added as text. If the `extract` parameter is set to True, keypoints are extracted from the frames 
-    and saved as numpy files.
+    This function captures a video from the given file path, detects holistic landmarks in each frame 
+    using MediaPipe. 
+
+    If the `display` parameter is set to True, the video is played using `cv2.imshow`, 
+    the landmarks are drawn on the frame using `draw_styled_landmarks`,
+    and the given label is added as text using `put_text_CJK`.
 
     Args:
         label (str): The label to display on the video.
         video_path (str): The path to load the video file.
-        keypoint_dir (str): The directory to save the numpy file for keypoint data.
-        extract (bool, optional): Flag indicating whether to extract and save keypoints. Defaults to False.
+        keypoint_dir (str): The directory to save the numpy file for keypoint data. 
+        display (bool, optional): Flag indicating whether to play the video and 
+                                  draw the landmark in realtime.
 
     Returns:
         None
@@ -209,39 +214,47 @@ def play_and_detect(label, video_path, keypoint_dir, extract=False):
     model = mp.solutions.holistic  # Holistic model
     drawing = mp.solutions.drawing_utils  # Drawing utilities  
    
-    with model.Holistic(min_detection_confidence=0.5, 
-                              min_tracking_confidence=0.5) as holistic:
-        cap = cv2.VideoCapture(video_path)
-        if not cap.isOpened():
-            print("Error: Unable to open video file")
-            return
+    try:
+        with model.Holistic(min_detection_confidence=0.5, 
+                                min_tracking_confidence=0.5) as holistic:
 
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret: # if frame is read correctly, then ret is True
-                break
-            
-            # Detect and draw the holistic landmarks 
-            frame, results = detect_landmarks(frame, holistic)
-            draw_styled_landmarks(frame, results, drawing, model)
-            
-            # Add a text label (CJK characters allowed) to the frame and display both of them.
-            frame_with_label = put_text_CJK(frame, label)
-            cv2.imshow(f'Video {label}', frame_with_label)
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                print("Error: Unable to open video file")
+                return
 
-            # Extract keypoint data from frames and save data as numpy files.
-            if extract:
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret: # if frame is read correctly, then ret is True
+                    break
+                
+                # Detect the holistic landmarks 
+                frame, results = detect_landmarks(frame, holistic)
+
+                if display:
+                    # Draw the holistic landmarks 
+                    draw_styled_landmarks(frame, results, drawing, model)
+                
+                    # Add a text label (CJK characters allowed) to the frame and display both of them.
+                    frame_with_label = put_text_CJK(frame, label)
+                    cv2.imshow(f'Video {label}', frame_with_label)
+
+                # Extract keypoint data from frames and save data as numpy files.
                 keypoints = extract_keypoints(results)
                 npy_path = os.path.join(keypoint_dir, label)
                 np.save(npy_path, keypoints)
 
-            if cv2.waitKey(10) & 0xFF == ord('q'):
-                break
+                if cv2.waitKey(10) & 0xFF == ord('q'):
+                    break
 
-        cap.release()
-        cv2.destroyAllWindows()
+            cap.release()
+            cv2.destroyAllWindows()
+        return True
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
 
-def show_video_list(video_dir, printed=False):
+def get_video_list(video_dir, printed=False):
     """Scan directory for 'video_<label>.mp4' files and return the video list as a DataFrame. 
     
     Given the option `printed=True`, the DataFrame is also printed to the console for immediate viewing.
@@ -272,6 +285,63 @@ def show_video_list(video_dir, printed=False):
 
     return df
 
+def read_csv_and_download(url_path, video_dir):
+    """Read the labels and URLs from the CSV file, and download the video from YouTube.
+
+    This function combined `read_csv` and `download_YouTube`.
+
+    Args:
+        url_path (str): The path to the CSV file containing labels and URLs
+        video_path (str): The path where the video will be saved.
+
+    Returns:
+        pandas.DataFrame: Columns 'label' and 'video_path' for downloaded files.
+    """
+    labels, urls = read_csv(url_path)
+    print('Importing:', labels)
+    video_paths = []
+    # Process each label and URL pair
+    for i, (label, url) in enumerate(zip(labels, urls)):
+        video_path = os.path.join(video_dir, f"video_{label}.mp4")
+        
+        if download_YouTube(url, video_path):
+            print(f"Successfully downloaded video to: {video_path}")
+            video_paths.append((label, video_path))
+        else:
+            print(f"Failed to download video from {url}")
+
+    df = pd.DataFrame(video_paths, columns=['label', 'video_path'])
+    return df
+    
+def load_and_detect(video_dir, keypoint_dir, display):
+    """Load the videos from `video_dir` and 
+
+    Args:
+        video_path (str): The path where the video will be saved.
+        keypoint_dir (str): The directory to save the numpy file for keypoint data. 
+        display (bool, optional): Flag indicating whether to play the video and 
+                                  draw the landmark in realtime.
+
+    Returns:
+        None
+    """
+    video_df = get_video_list(video_dir)
+    print('Importing:', video_df['label'].to_list)
+    keypoint_paths = []
+
+    for _, row in video_df.iterrows():
+        label, video_path = row['label'], row['video_path'] 
+        keypoint_path = os.path.join(keypoint_dir, f'{label}.npy')
+        if detect_and_extract(label, video_path, 
+                              keypoint_dir, display):
+            print(f'Successfully captured video from {video_path}.')
+            keypoint_paths.append((label, keypoint_path))
+        else:
+            print(f"Failed to capture video from {video_path}")
+
+    df = pd.DataFrame(keypoint_paths, columns=['label', 'keypoint_path'])
+    return df 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Download and play videos from URLs in a CSV file.")
     
@@ -286,9 +356,9 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--show', action='store_true', 
                         help="Show the list of downloaded videos.")
     parser.add_argument('-d', '--detect', action='store_true', 
-                        help="Detect the pose in the video and display it.")
-    parser.add_argument('-e', '--extract', action='store_true', 
-                        help="Extract the keypoint data from the video and save it.")
+                        help="Detect the pose in the video and extract the keypoints.")
+    parser.add_argument('-p', '--play', action='store_true', 
+                        help="Play the video and draw the detected the landmarks")
     
     args = parser.parse_args()
 
@@ -304,27 +374,13 @@ if __name__ == '__main__':
             os.makedirs(folder)
 
     if args.download:
-        # Read the labels and URLs from the CSV file
-        labels, urls = read_csv(args.url_path)
-        print('Importing:', labels)
-
-        # Process each label and URL pair
-        for i, (label, url) in enumerate(zip(labels, urls)):
-            video_path = os.path.join(args.video_dir, f"video_{label}.mp4")
-            
-            # Download the video from YouTube
-            if download_YouTube(url, video_path):
-                print(f"Video downloaded: {video_path}")
-            else:
-                print(f"Failed to download video: {url}")
+        read_csv_and_download(args.url_path, args.video_dir)
 
     # Scan for videos in the directory and print the info.
     if args.show:
-        show_video_list(args.video_dir, printed=True)
+        get_video_list(args.video_dir, printed=True)
         
     # Detect the landmarks for each video; also extract the keypoints if args.extract is True
-    if args.detect or args.extract:
-        video_df = show_video_list(args.video_dir)
-        for index, row in video_df.iterrows():
-            play_and_detect(row['label'], row['video_path'], args.keypoint_dir, extract=args.extract)
+    if args.detect or args.play:
+        load_and_detect(args.video_dir, args.keypoint_dir, args.play)
 

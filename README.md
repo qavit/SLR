@@ -31,13 +31,11 @@ pip install -r requirements.txt
 - 根據初步測試，此腳本的模型有過擬合（overfitting）的問題，有必要對模型的設計和超參數（hyperparameters）的調整做進一步的考察。
 
 
-
-
 ## `fetch_kp_yt.py`
 
 此腳本（2024-08-04 更新）可以在 Shell 中執行，從 YouTube 下載手語影片，並使用 MediaPipe 進行人體姿勢偵測。
 
-此腳本之後將作為的模組之一。
+此腳本之後將作為手語語料庫建置模組之一。
 
 ### 功能概述
 
@@ -71,10 +69,10 @@ pip install -r requirements.txt
 - `-u` 或 `--url_path`：指定 CSV 檔案的路徑（預設為 `settings.py` 中的 `URL_PATH`）
 - `-v` 或 `--video_dir`：指定下載影片的儲存目錄（預設為 `settings.py` 中的 `VIDEO_DIR`）
 - `-k` 或 `--keypoint_dir`：指定關鍵點資料的儲存目錄（預設為 `settings.py` 中的 `KP_DIR`）
-- `-l` 或 `--download`：下載（down**l**oad） CSV 檔案中指定的影片
-- `-s` 或 `--show`：顯示（**s**how）已下載的影片清單
-- `-d` 或 `--detect`：執行姿勢偵測（**d**etect）並播放結果
-- `-e` 或 `--extract`：提取（**e**xtract）關鍵點資料並儲存
+- `-l` 或 `--download`：下載（down<u><b>l</b></u>oad） CSV 檔案中指定的影片
+- `-s` 或 `--show`：顯示（<u><b>s</b></u>how）已下載的影片清單
+- `-d` 或 `--detect`：執行姿勢偵測（<u><b>d</b></u>etect）、關鍵點提取
+- `-p` 或 `--play`：執行姿勢偵測、關鍵點提取並播放（<u><b>p</b></u>lay）結果
 
 ### 範例指令
 
@@ -88,14 +86,14 @@ pip install -r requirements.txt
    python fetch_kp_yt.py -s
    ```
 
-3. 執行姿勢偵測：
+3. 執行姿勢偵測、提取關鍵點：
    ```sh
    python fetch_kp_yt.py -d
    ```
 
-4. 執行姿勢偵測並提取關鍵點：
+4. 執行姿勢偵測、提取關鍵點、即時播放：
    ```sh
-   python fetch_kp_yt.py -e
+   python fetch_kp_yt.py -p
    ```
 
 ### 注意事項
