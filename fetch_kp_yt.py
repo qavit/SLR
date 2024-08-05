@@ -5,9 +5,10 @@ import cv2
 import argparse
 import os
 import re
-from pytubefix import YouTube 
+from pytubefix import YouTube
 from PIL import ImageFont, ImageDraw, Image
 from settings import FONT_PATH, URL_PATH, VIDEO_DIR, KP_DIR, KP_ZEROS
+
 
 def read_csv(url_path):
     """Read a CSV file and extract labels and URLs.
@@ -23,10 +24,12 @@ def read_csv(url_path):
     urls = df['URL'].tolist()
     return labels, urls
 
+
 def download_YouTube(url, video_path):
     """Download a video from the given YouTube URL and save it to a file.
-    
-    This downloader is based on `pytubefix`. See more at https://pytubefix.readthedocs.io/en/latest/.
+
+    This downloader is based on `pytubefix`. 
+    See more at https://pytubefix.readthedocs.io/en/latest/.
 
     Args:
         url (str): The URL of the video to download.
@@ -38,12 +41,13 @@ def download_YouTube(url, video_path):
     try:
         yt = YouTube(url)
         stream = yt.streams.get_highest_resolution()
-        stream.download(output_path = video_path.rsplit('/', 1)[0], 
+        stream.download(output_path = video_path.rsplit('/', 1)[0],
                         filename = video_path.rsplit('/', 1)[1])
         return True
     except Exception as e:
         print(f"An error occurred: {e}")
         return False
+
 
 def download_with_requests(url, file_path):
     """Download a file from a given URL and save it to a specified file path.
@@ -68,6 +72,7 @@ def download_with_requests(url, file_path):
             return True
     return False
 
+
 def draw_styled_landmarks(image, results, drawing, model):
     """Draw the landmarks on the image.
 
@@ -78,7 +83,7 @@ def draw_styled_landmarks(image, results, drawing, model):
         results (object): The results from the holistic model containing the landmarks.
         drawing (object): The MediaPipe solution drawing utilities.
         model (object): The MediaPipe holistic model.
-    
+
     Returns:
         None
     """
@@ -88,29 +93,30 @@ def draw_styled_landmarks(image, results, drawing, model):
 
     # Draw face landmarks
     draw(image, results.face_landmarks, model.FACEMESH_CONTOURS,
-        spec(color=(80, 110, 10), thickness=1, circle_radius=1),  # landmark_drawing_spec
-        spec(color=(80, 256, 121), thickness=1, circle_radius=1)  # connection_drawing_spec
+         spec(color=(80, 110, 10), thickness=1, circle_radius=1),  # landmark_drawing_spec
+         spec(color=(80, 256, 121), thickness=1, circle_radius=1)  # connection_drawing_spec
         )
 
     # Draw pose landmarks
     draw(image, results.pose_landmarks, model.POSE_CONNECTIONS,
-        spec(color=(80, 22, 10), thickness=2, circle_radius=4),
-        spec(color=(80, 44, 121), thickness=2, circle_radius=2)
-        )
+         spec(color=(80, 22, 10), thickness=2, circle_radius=4),
+         spec(color=(80, 44, 121), thickness=2, circle_radius=2)
+         )
 
     # Draw left hand landmarks
     draw(image, results.left_hand_landmarks, model.HAND_CONNECTIONS,
-        spec(color=(121, 22, 76), thickness=2, circle_radius=4),
-        spec(color=(121, 44, 250), thickness=2, circle_radius=2)
-        )
+         spec(color=(121, 22, 76), thickness=2, circle_radius=4),
+         spec(color=(121, 44, 250), thickness=2, circle_radius=2)
+         )
 
     # Draw right hand landmarks
     draw(image, results.right_hand_landmarks, model.HAND_CONNECTIONS,
-        spec(color=(245, 117, 66), thickness=2, circle_radius=4),
-        spec(color=(245, 66, 230), thickness=2, circle_radius=2)
-        )
-    
+         spec(color=(245, 117, 66), thickness=2, circle_radius=4),
+         spec(color=(245, 66, 230), thickness=2, circle_radius=2)
+         )
+
     return None
+
 
 def detect_landmarks(image, model):
     """Detect holistic landmarks in the image.
@@ -128,6 +134,7 @@ def detect_landmarks(image, model):
     image.flags.writeable = True                   # Make image unwriteable
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR) # Convert color from RGB to BGR
     return image, results
+
 
 def extract_keypoints(results):
     """Extract keypoints from MediaPipe results and create a 1D NumPy array.
@@ -164,6 +171,7 @@ def extract_keypoints(results):
     
     return np.concatenate(keypoints)
 
+
 def put_text_CJK(img, txt, font_path=FONT_PATH, 
                  position=(0, 0), font_size=50, color=(255, 255, 255)):
     """Add CJK (Chinese, Japanese, Korean) text to an image using PIL (Python Imaging Library).
@@ -186,6 +194,7 @@ def put_text_CJK(img, txt, font_path=FONT_PATH,
     draw = ImageDraw.Draw(img_pil)                   # Prepare to draw on the image
     draw.text(position, txt, fill=color, font=font)  # Draw the text on the image
     return np.array(img_pil)                         # Convert the PIL image back to a NumPy arra
+
 
 def detect_and_extract(label, video_path, keypoint_dir, display=False):
     """Detect holistic landmarks using MediaPipe and extract keypoints, and 
@@ -254,9 +263,10 @@ def detect_and_extract(label, video_path, keypoint_dir, display=False):
         print(f"An error occurred: {e}")
         return False
 
+
 def get_video_list(video_dir, printed=False):
-    """Scan directory for 'video_<label>.mp4' files and return the video list as a DataFrame. 
-    
+    """Scan directory for 'video_<label>.mp4' files and return the video list as a DataFrame.
+
     Given the option `printed=True`, the DataFrame is also printed to the console for immediate viewing.
 
     Args:
@@ -280,10 +290,11 @@ def get_video_list(video_dir, printed=False):
     df = pd.DataFrame(video_files, columns=['label', 'video_path'])
 
     # Print results for confirmation
-    if printed == True:
+    if printed:
         print(df)
 
     return df
+
 
 def read_csv_and_download(url_path, video_dir):
     """Read the labels and URLs from the CSV file, and download the video from YouTube.
@@ -303,7 +314,7 @@ def read_csv_and_download(url_path, video_dir):
     # Process each label and URL pair
     for i, (label, url) in enumerate(zip(labels, urls)):
         video_path = os.path.join(video_dir, f"video_{label}.mp4")
-        
+
         if download_YouTube(url, video_path):
             print(f"Successfully downloaded video to: {video_path}")
             video_paths.append((label, video_path))
@@ -312,14 +323,14 @@ def read_csv_and_download(url_path, video_dir):
 
     df = pd.DataFrame(video_paths, columns=['label', 'video_path'])
     return df
-    
+
 def load_and_detect(video_dir, keypoint_dir, display):
-    """Load the videos from `video_dir` and 
+    """Load the videos from `video_dir`, detect the landmarks, and extract keypoints.
 
     Args:
         video_path (str): The path where the video will be saved.
-        keypoint_dir (str): The directory to save the numpy file for keypoint data. 
-        display (bool, optional): Flag indicating whether to play the video and 
+        keypoint_dir (str): The directory to save the numpy file for keypoint data.
+        display (bool, optional): Flag indicating whether to play the video and
                                   draw the landmark in realtime.
 
     Returns:
@@ -330,9 +341,10 @@ def load_and_detect(video_dir, keypoint_dir, display):
     keypoint_paths = []
 
     for _, row in video_df.iterrows():
-        label, video_path = row['label'], row['video_path'] 
+        label, video_path = row['label'], row['video_path']
         keypoint_path = os.path.join(keypoint_dir, f'{label}.npy')
-        if detect_and_extract(label, video_path, 
+
+        if detect_and_extract(label, video_path,
                               keypoint_dir, display):
             print(f'Successfully captured video from {video_path}.')
             keypoint_paths.append((label, keypoint_path))
@@ -340,7 +352,7 @@ def load_and_detect(video_dir, keypoint_dir, display):
             print(f"Failed to capture video from {video_path}")
 
     df = pd.DataFrame(keypoint_paths, columns=['label', 'keypoint_path'])
-    return df 
+    return df
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Download and play videos from URLs in a CSV file.")
@@ -351,13 +363,13 @@ if __name__ == '__main__':
                         help=f"The folder where videos will be downloaded. Default is {VIDEO_DIR}.")
     parser.add_argument('--keypoint_dir', '-k', type=str, default=KP_DIR,
                         help=f"The folder where keypoint data will be saved. Default is {KP_DIR}.")
-    parser.add_argument('-l', '--download', action='store_true', 
+    parser.add_argument('-l', '--download', action='store_true',
                         help="Download the videos according to the URLs in url_path.")
-    parser.add_argument('-s', '--show', action='store_true', 
+    parser.add_argument('-s', '--show', action='store_true',
                         help="Show the list of downloaded videos.")
-    parser.add_argument('-d', '--detect', action='store_true', 
+    parser.add_argument('-d', '--detect', action='store_true',
                         help="Detect the pose in the video and extract the keypoints.")
-    parser.add_argument('-p', '--play', action='store_true', 
+    parser.add_argument('-p', '--play', action='store_true',
                         help="Play the video and draw the detected the landmarks")
     
     args = parser.parse_args()
@@ -379,8 +391,7 @@ if __name__ == '__main__':
     # Scan for videos in the directory and print the info.
     if args.show:
         get_video_list(args.video_dir, printed=True)
-        
+
     # Detect the landmarks for each video; also extract the keypoints if args.extract is True
     if args.detect or args.play:
         load_and_detect(args.video_dir, args.keypoint_dir, args.play)
-

@@ -29,7 +29,7 @@ MODEL_DIR = os.path.join('Models')
 DATA_DIR = os.path.join('MP_Data')  # Directory for keypoint data (.npy) acquired by MediaPipe
 LOG_DIR = os.path.join('Logs')      # Directory for the log files to be parsed by TensorBoard
 N_VIDEOS = 30       # number of videos for each label
-N_FRAMES = 30      #  number of frames in each video
+N_FRAMES = 30      # number of frames in each video
 
 N_KEYPTS = 1662       # number of keypoints; 
 #          63, if single hand
@@ -122,9 +122,9 @@ def test_cam(use_mp_model=False):
         cv2.imshow('OpenCV Feed', frame) # Show to screen
 
         if use_mp_model:
-            # Use MediaPipe to detect holistic model 
+            # Use MediaPipe to detect holistic model
             image, mp_results = mp_detect(frame, use_mp_model)
-            
+          
             # Use MediaPipe to draw landmarks
             draw_styled_landmarks(image, mp_results)
 
@@ -133,7 +133,7 @@ def test_cam(use_mp_model=False):
             break
 
     cap.release()
-    cv2.destroyAllWindows() 
+    cv2.destroyAllWindows()
 
     return None
 
@@ -141,17 +141,17 @@ def test_cam(use_mp_model=False):
 def create_folder(labels):
     """
     Creating folder for collecting video frames.
-    
+   
     Parameters
     - labels (array_like): 1d array of labels. Each label is a string. For example: `['car', 'shoe', 'lake']`.
     """
 
-    # !? assert *labels is 1d array* 
+    # !? assert *labels is 1d array*
     # !? assert *each item in labels is a string*
 
-    for label in labels: 
+    for label in labels:
         for idx_video in range(N_VIDEOS):
-            try: 
+            try:
                 os.makedirs(os.path.join(DATA_DIR, label, str(idx_video)))
             except:
                 pass
@@ -164,18 +164,18 @@ def collect_videos(labels, idx0=0):
     Open built-in webcam, record videos for idividual signs, extract keypoint data, and save as numpy file.
 
     Parameters:
-    - labels (array_like): 1d array of labels. Each label is a string. 
+    - labels (array_like): 1d array of labels. Each label is a string.
         For example: `['car', 'shoe', 'lake']`.
     - idx0 (int): the index value of the first video in the collection. Default: 0.
     """
 
-    # !? assert *labels is a 1d array* 
+    # !? assert *labels is a 1d array*
     # !? assert *each item in labels is a string*
     assert int(idx0) == idx0
 
     cap = cv2.VideoCapture(0)
 
-    with mp_holistic.Holistic(min_detection_confidence=0.5, 
+    with mp_holistic.Holistic(min_detection_confidence=0.5,
                               min_tracking_confidence=0.5) as holistic:
         
         for label in labels:
@@ -187,14 +187,14 @@ def collect_videos(labels, idx0=0):
                     # Read feed
                     _, frame = cap.read()
 
-                    # Use MediaPipe to detect holistic model 
+                    # Use MediaPipe to detect holistic model
                     image, mp_results = mp_detect(frame, holistic)
 
                     # Use MediaPipe to draw landmarks
                     draw_styled_landmarks(image, mp_results)
 
                     # Apply wait logic & display text in the window
-                    if idx_frame == 0: 
+                    if idx_frame == 0:
                         cv2.putText(image, 'START RECORDING', (120, 200),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
                         cv2.putText(image, txt, (15, 12),
@@ -246,7 +246,7 @@ def preprocess_keypoints(labels):
     Convert the keypoint data into array (`X`).
     Convert the label number into binary class matrix (`y`).
 
-    Info: 
+    Info:
     - `X.ndim = 3`
     - `y.ndim = 2`
     - `X.shape = (len(labels)*N_VIDEOS, N_FRAMES, 1662)`
@@ -259,7 +259,7 @@ def preprocess_keypoints(labels):
     - train_and_test (tuple): training data and testing data. Each entry is an array.
     """
 
-    # !? assert *labels is a 1d array* 
+    # !? assert *labels is a 1d array*
     # !? assert *each item in labels is a string*
 
     label_map = {label:num for num, label in enumerate(labels)}
@@ -280,10 +280,10 @@ def preprocess_keypoints(labels):
             label_num_list.append(label_map[label])
 
     # Converts video_list to numpy.ndarray
-    X = np.array(video_list)         
+    X = np.array(video_list)
 
     # Converts labels to binary class matrix
-    y = to_categorical(label_num_list).astype(int)  
+    y = to_categorical(label_num_list).astype(int)
 
     train_and_test = train_test_split(X, y, test_size=0.05)
 
@@ -294,8 +294,8 @@ def evaluate_model(X_test, y_test):
     """
 
     Args:
-        X_test (array): 
-        y_test (array): 
+        X_test (array):
+        y_test (array):
     """
     y_actual = np.argmax(y_test, axis=1).tolist()
     y_predicted = model.predict(X_test)
@@ -312,7 +312,7 @@ mp_holistic = mp.solutions.holistic                 # Holistic model
 mp_drawing = mp.solutions.drawing_utils             # Drawing utilities
 
 # labels, e.g., ['paper', 'scissors', 'rock'] or [f'number{i}' for i in range(10)]
-# new_corpus = np.array([f'number{i}' for i in range(10)]) 
+# new_corpus = np.array([f'number{i}' for i in range(10)])
 # print(new_corpus)
 
 collect_videos_from_url(CSV_PATH)
@@ -323,10 +323,10 @@ collect_videos_from_url(CSV_PATH)
 
 # X_train, X_test, y_train, y_test = preprocess_keypoints(new_corpus)
 
-# print(f'{X_train.shape = }') 
-# print(f'{X_test.shape = }') 
-# print(f'{y_train.shape = }') 
-# print(f'{y_test.shape = }')  
+# print(f'{X_train.shape = }')
+# print(f'{X_test.shape = }')
+# print(f'{y_train.shape = }')
+# print(f'{y_test.shape = }')
 
 #################################################################
 # MAIN - MODEL TRAINING
