@@ -7,6 +7,7 @@ URL_PATH =  os.path.join('URLs', 'urls02.csv')
 
 VIDEO_DIR = 'Videos'
 KP_DIR = 'Keypoints'
+IMG_DIR = 'Images'
 
 MODEL_NAME = 'tsl001'
 MODEL_DIR = os.path.join('Models')
