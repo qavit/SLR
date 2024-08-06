@@ -1,7 +1,7 @@
 import os
 import cv2
 import numpy as np
-from fetch import *
+from fetch_ds import *
 from settings import LANG, N_VIDEOS, N_FRAMES, KP_DIR
 
 ##################################################################

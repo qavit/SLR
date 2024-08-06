@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ```
 
 ## `mp.py`
-- **警告：此腳本即將棄用！但因為保留重要的函式，例如 LSTM 的建構、訓練和評估，所以暫時保留。此外，一部分跟 MediaPipe 的有關的功能暫時轉移到 `fetch.py`**。
+- **警告：此腳本即將棄用！但因為保留重要的函式，例如 LSTM 的建構、訓練和評估，所以暫時保留。此外，一部分跟 MediaPipe 的有關的功能暫時轉移到 `fetch_ds.py`**。
 - 此腳本（2024-08-02 更新）主要功能是：
    1. 為自定義的語彙標籤集合（例如變數 `new_corpus`）。
    2. 使用函式 `collect_videos` 透過內建的 webcam 錄製各個語彙標籤的手語影片。
@@ -34,7 +34,7 @@ pip install -r requirements.txt
 這裡集中管理全專案共用的設定。變數名稱一律大寫。
 
 
-## `fetch.py`
+## `fetch_ds.py`
 
 此腳本（2024-08-04 更新）可以在 Shell 中執行，從 YouTube 下載手語影片，並使用 MediaPipe 進行人體姿勢偵測。
 
@@ -59,8 +59,6 @@ pip install -r requirements.txt
 - Pillow (PIL)
 - mediapipe
 
-
-
 ### 使用方法
 
 1. 準備一個 CSV 檔案，包含要下載的 YouTube 影片 URL 和對應的標籤。
@@ -81,22 +79,22 @@ pip install -r requirements.txt
 
 1. 下載影片：
    ```sh
-   python fetch.py -l
+   python fetch_ds.py -l
    ```
 
 2. 顯示已下載的影片清單：
    ```sh
-   python fetch.py -s
+   python fetch_ds.py -s
    ```
 
 3. 執行姿勢偵測、提取關鍵點：
    ```sh
-   python fetch.py -d
+   python fetch_ds.py -d
    ```
 
 4. 執行姿勢偵測、提取關鍵點、即時播放：
    ```sh
-   python fetch.py -p
+   python fetch_ds.py -p
    ```
 
 ### 注意事項
@@ -112,7 +110,7 @@ pip install -r requirements.txt
 - `extract_keypoints` 函數提供了關鍵點資料的提取，並將 NumPy 檔案儲存在指令路徑。你可以根據需求進行進一步的資料分析。
 
 ## `demo.py`
-這個腳本使用 [Gradio](https://www.gradio.app/) 實現 `fetch.py` 的使用者介面。腳本執行之後，會在 `http://127.0.0.1:7860` 建立簡易 GUI，供使用者上傳 YouTube URL 的 CSV 檔、下載 YouTube 和偵測 landmark、提取 keypoints。
+這個腳本使用 [Gradio](https://www.gradio.app/) 實現 `fetch_ds.py` 的使用者介面。腳本執行之後，會在 `http://127.0.0.1:7860` 建立簡易 GUI，供使用者上傳 YouTube URL 的 CSV 檔、下載 YouTube 和偵測 landmark、提取 keypoints。
 
 ## `raven.py`
 這個腳本使用了 Hugging Face 的模型 [RavenOnur/Sign-Language](https://huggingface.co/RavenOnur/Sign-Language)（代號 `raven`）。它隨機抽取 25 個拉丁字母（A-Y，不含 Z）手勢圖片中的 10 張，然後交給模型的 pipeline 辨識，同時印出圖檔的 URL 和辨識結果。
@@ -132,7 +130,8 @@ L.jpg ----> L
 N.jpg ----> N
 V.jpg ----> V
 ```
-
+## `build_ds.py`
+開 webcam 錄影，建立自己的資料庫。
 
 ## MediaPipe 簡介
 ### Landmark

@@ -1,5 +1,5 @@
-from settings import *
-from fetch import *
+from settings import DATA_DIR, N_VIDEOS, N_FRAMES
+from fetch_ds import *
 
 import os
 import numpy as np
@@ -16,66 +16,6 @@ from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.callbacks import TensorBoard
 
 ##################################################################
-
-def collect_videos(labels, idx0=0):
-    """Open built-in webcam, record videos for idividual signs, extract keypoint data, and save as numpy file.
-
-    Parameters:
-        labels (array_like): 1d array of labels. Each label is a string. For example: `['car', 'shoe', 'lake']`.
-        
-        idx0 (int): the index value of the first video in the collection. Default: 0.
-    """
-
-    assert int(idx0) == idx0
-
-    cap = cv2.VideoCapture(0)
-
-    with mp_holistic.Holistic(min_detection_confidence=0.5,
-                              min_tracking_confidence=0.5) as holistic:
-        
-        for label in labels:
-            for idx_video in range(idx0, idx0 + N_VIDEOS):
-                txt = f'Recording Video No. {idx_video} of Label "{label}"'
-
-                for idx_frame in range(N_FRAMES):
-
-                    # Read feed
-                    _, frame = cap.read()
-
-                    # Use MediaPipe to detect holistic model
-                    image, mp_results = mp_detect(frame, holistic)
-
-                    # Use MediaPipe to draw landmarks
-                    draw_styled_landmarks(image, mp_results)
-
-                    # Apply wait logic & display text in the window
-                    if idx_frame == 0:
-                        cv2.putText(image, 'START RECORDING', (120, 200),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
-                        cv2.putText(image, txt, (15, 12),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-                        cv2.imshow('OpenCV Feed', image)
-                        cv2.waitKey(250)
-
-                    else:
-                        countdown = f'{N_FRAMES - idx_frame:02d}'
-                        cv2.putText(image, countdown, (120, 200),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)                     
-                        cv2.putText(image, txt, (15, 12),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-                        cv2.imshow('OpenCV Feed', image)
-
-                    # Extract keypoint data from frames and save data as numpy files
-                    keypoints = extract_keypoints(mp_results)
-                    npy_path = os.path.join(DATA_DIR, label, str(idx_video), str(idx_frame))
-                    np.save(npy_path, keypoints)
-
-                    # Break gracefully
-                    if cv2.waitKey(10) & 0xFF == ord('q'):
-                        break
-                  
-        cap.release()
-        cv2.destroyAllWindows()
 
 def preprocess_keypoints(labels):
     """
