@@ -1,4 +1,5 @@
 # Ignore videos directory
 Videos/
 __pychache__/
+Keypoints/
 

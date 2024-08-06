@@ -1,5 +1,5 @@
 import cv2
-from fetch import detect_landmarks, draw_styled_landmarks
+from fetch_ds import detect_landmarks, draw_styled_landmarks
 
 leave_txt = "Press 'q' to close the window."
 
@@ -31,6 +31,7 @@ def test_cam_with_opencv():
 
     cap.release()
     cv2.destroyAllWindows()
+
 
 def test_cam_with_mediapipe():
     """Test the webcam using OpenCV and MediaPipe.
@@ -70,7 +71,9 @@ def test_cam_with_mediapipe():
         cap.release()
         cv2.destroyAllWindows()
 
+
 ##################################################################
+# MAIN FUNCTION
 
 if __name__ == '__main__':
     # test_cam_with_opencv()
