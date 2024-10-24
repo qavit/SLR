@@ -3,3 +3,5 @@ Videos/
 __pychache__/
 Keypoints/
 
+.DS_Store
+gust/.ipynb_checkpoints/
